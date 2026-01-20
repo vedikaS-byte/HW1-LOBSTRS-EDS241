@@ -1,7 +1,7 @@
 ---
 title: "Assignment 1"
 subtitle: "California Spiny Lobster (*Panulirus Interruptus*): Assessing the Impact of Marine Protected Areas (MPAs) at 5 Reef Sites in Santa Barbara County" 
-author: "EDS 241 / ESM 244 (**Due: 1/17**)"
+author: "EDS 241 / ESM 244 (**Due: 1/20**)"
 date: "1/8/26"
 output: 
     html_document:
@@ -20,21 +20,19 @@ knitr::opts_chunk$set(eval=FALSE, warning = FALSE, message = FALSE )
 
 ### Assignment Instructions:
 
--  Working with partners to troubleshoot code and concepts is encouraged! If you work with a partner, please list their name next to yours at the top of your assignment so Annie and I can easily see who collaborated. 
+-   Working with partners to troubleshoot code and concepts is encouraged! If you work with a partner, please list their name next to yours at the top of your assignment so Annie and I can easily see who collaborated.
 
--  All written responses must be written independently (**in your own words**). 
+-   All written responses must be written independently (**in your own words**).
 
--  Please follow the question prompts carefully and include only the information each question asks in your submitted responses.
+-   Please follow the question prompts carefully and include only the information each question asks in your submitted responses.
 
--  Submit both your knitted document and the associated `RMarkdown` or `Quarto` file. 
+-   Submit both your knitted document and the associated `RMarkdown` or `Quarto` file.
 
--  Your knitted presentation should meet the quality you'd submit to research colleagues or feel confident sharing publicly. Refer to the rubric for details about presentation standards.
+-   Your knitted presentation should meet the quality you'd submit to research colleagues or feel confident sharing publicly. Refer to the rubric for details about presentation standards.
 
+**Assignment submission (YOUR NAME):** Vedika Shirtekar
 
-**Assignment submission (YOUR NAME):** ______________________________________
-
-
-----------------------------------------------------------------------
+------------------------------------------------------------------------
 
 ```{r}
 
@@ -64,18 +62,17 @@ You're about to dive into some deep data collected from five reef sites in Santa
 
 Why lobsters? Well, this sample provides an opportunity to evaluate the impact of Marine Protected Areas (MPAs) established on January 1, 2012 (Reed, 2019). Of these five reefs, Naples, and Isla Vista are MPAs, while the other three are not protected (non-MPAs). Comparing lobster health between these protected and non-protected areas gives us the chance to study how commercial and recreational fishing might impact these ecosystems.
 
-We will consider the MPA sites the `treatment` group and use regression methods to explore whether protecting these reefs really makes a difference compared to non-MPA sites (our control group). In this assignment, we’ll think deeply about which causal inference assumptions hold up under the research design and identify where they fall short. 
+We will consider the MPA sites the `treatment` group and use regression methods to explore whether protecting these reefs really makes a difference compared to non-MPA sites (our control group). In this assignment, we’ll think deeply about which causal inference assumptions hold up under the research design and identify where they fall short.
 
 Let’s break it down step by step and see what the data reveals! 📊
 
 ![](figures/map-5reefs.png)
 
-
 ------------------------------------------------------------------------
 
 #### Step 1: Anticipating potential sources of selection bias
 
-**a.** Do the control sites (Arroyo Quemado, Carpenteria, and Mohawk) provide a strong counterfactual for our treatment sites (Naples, Isla Vista)? Write a paragraph making a case for why this comparison is ceteris paribus or whether selection bias is likely (be specific!).  
+**a.** Do the control sites (Arroyo Quemado, Carpenteria, and Mohawk) provide a strong counterfactual for our treatment sites (Naples, Isla Vista)? Write a paragraph making a case for why this comparison is ceteris paribus or whether selection bias is likely (be specific!).
 
 ------------------------------------------------------------------------
 
@@ -87,37 +84,76 @@ Let’s break it down step by step and see what the data reveals! 📊
 
 ```{r}
 # HINT: check for coding of missing values (`na = "-99999"`)
-
 rawdata <- 
-
+    read_csv(here::here("data", "spiny_abundance_sb_18.csv"), na = "-99999") %>% 
+    clean_names()
 ```
 
-**c.** Create a new `df` named `tidyata`. Using the variable `site` (reef location) create a new variable `reef` as a `factor` and add the following labels in the order listed (i.e., re-order the `levels`): 
-    
-    "Arroyo Quemado", "Carpenteria", "Mohawk", "Isla Vista",  "Naples"
+**c.** Create a new `df` named `tidyata`. Using the variable `site` (reef location) create a new variable `reef` as a `factor` and add the following labels in the order listed (i.e., re-order the `levels`):
+
+```         
+"Arroyo Quemado", "Carpenteria", "Mohawk", "Isla Vista",  "Naples"
+```
 
 ```{r}
 
-tidydata <- 
-    
+tidydata <- rawdata %>% 
+  mutate(
+    reef = factor(
+      case_when(
+        site == "AQUE" ~ "Arroyo Quemado", 
+        site == "CARP" ~ "Carpenteria", 
+        site == "MOHK" ~ "Mohawk", 
+        site == "IVEE" ~ "Isla Vista", 
+        site == "NAPL" ~ "Naples"
+      #  TRUE ~ NA_character_
+      ),
+      levels = c(
+        "Arroyo Quemado",
+        "Carpenteria",
+        "Mohawk",
+        "Isla Vista",
+        "Naples"
+      )
+    )
+  )
 ```
 
-Create new `df` named `spiny_counts` 
+Create new `df` named `spiny_counts`
 
-**d.** Create a new variable `counts` to allow for an analysis of lobster counts where the unit-level of observation is the total number of observed lobsters per `site`, `year` and `transect`. 
+**d.** Create a new variable `counts` to allow for an analysis of lobster counts where the unit-level of observation is the total number of observed lobsters per `site`, `year` and `transect`.
 
-- Create a variable `mean_size` from the variable `size_mm`
-- NOTE: The variable `counts` should have values which are integers (whole numbers). 
-- Make sure to account for missing cases (`na`)!
+-   Create a variable `mean_size` from the variable `size_mm`
+-   NOTE: The variable `counts` should have values which are integers (whole numbers).
+-   Make sure to account for missing cases (`na`)!
 
 **e.** Create a new variable `mpa` with levels `MPA` and `non_MPA`. For our regression analysis create a numerical variable `treat` where MPA sites are coded `1` and non_MPA sites are coded `0`
 
 ```{r}
 #HINT(d): Use `group_by()` & `summarize()` to provide the total number of lobsters observed at each site-year-transect row-observation. 
+counts <- tidydata %>% 
+  mutate(size_mm = na_if(size_mm, -99999)) %>% 
+  group_by(site, year, transect, reef) %>% 
+  summarize(
+    count = n(),
+    mean_size = mean(size_mm, na.rm = TRUE),
+    .groups = "drop"
+  )
 
 #HINT(e): Use `case_when()` to create the 3 new variable columns
-
-spiny_counts <- 
+spiny_counts <- counts %>% 
+  mutate( 
+    mpa = 
+      case_when(
+        site %in% c("NAPL", "IVEE") ~ "MPA",
+        site %in% c("AQUE", "CARP", "MOHK") ~ "non_MPA"), 
+    treat = 
+      case_when(
+        mpa == "MPA" ~ 1, 
+        mpa == "non_MPA" ~ 0
+        
+      )
+    ) 
 
 ```
 
@@ -129,37 +165,152 @@ spiny_counts <-
 
 **a.** Take a look at the data! Get familiar with the data in each `df` format (`tidydata`, `spiny_counts`)
 
+```{r}
+## tidydata
+str(tidydata)
+
+## spiny_counts
+str(spiny_counts)
+```
+
 **b.** We will focus on the variables `count`, `year`, `site`, and `treat`(`mpa`) to model lobster abundance. Create the following 4 plots using a different method each time from the 6 options provided. Add a layer (`geom`) to each of the plots including informative descriptive statistics (you choose; e.g., mean, median, SD, quartiles, range). Make sure each plot dimension is clearly labeled (e.g., axes, groups).
 
-- [Density plot](https://r-charts.com/distribution/density-plot-group-ggplot2)
-- [Ridge plot](https://r-charts.com/distribution/ggridges/)
-- [Jitter plot](https://ggplot2.tidyverse.org/reference/geom_jitter.html) 
-- [Violin plot](https://r-charts.com/distribution/violin-plot-group-ggplot2) 
-- [Histogram](https://r-charts.com/distribution/histogram-density-ggplot2/) 
-- [Beeswarm](https://r-charts.com/distribution/beeswarm/)
+-   [Density plot](https://r-charts.com/distribution/density-plot-group-ggplot2)
+-   [Ridge plot](https://r-charts.com/distribution/ggridges/)
+-   [Jitter plot](https://ggplot2.tidyverse.org/reference/geom_jitter.html)
+-   [Violin plot](https://r-charts.com/distribution/violin-plot-group-ggplot2)
+-   [Histogram](https://r-charts.com/distribution/histogram-density-ggplot2/)
+-   [Beeswarm](https://r-charts.com/distribution/beeswarm/)
 
 Create plots displaying the distribution of lobster **counts**:
 
-1) grouped by reef site  
-2) grouped by MPA status
-3) grouped by year
+1)  grouped by reef site
+2)  grouped by MPA status
+3)  grouped by year
 
 Create a plot of lobster **size** :
 
-4) You choose the grouping variable(s)!
+4)  You choose the grouping variable(s)!
 
 ```{r}
-# plot 1: ....
+# plot 1: Distribution of Spiny Lobster Counts by Reef Site
+site_medians <- spiny_counts %>%
+  group_by(site,reef) %>% # reef is also selected to 
+  summarize(median_count = median(count), .groups = "drop")
 
-spiny_counts %>% 
-ggplot()
-    
+
+spiny_counts %>%
+  ggplot(aes(x = count, fill = site)) +
+  geom_histogram(bins = 35, color = "white", alpha = 0.6) +
+  geom_vline(
+    data = site_medians,
+    aes(xintercept = median_count),
+    color = "darkblue",
+    linetype = "dashed",
+    linewidth = .5 
+  ) +
+    scale_fill_brewer(palette = "Set1") + 
+
+  facet_wrap(~reef, scales = "free_y") +
+  theme_bw(base_size = 10) +
+  theme(legend.position = "none") +
+  labs(
+    x = "Lobster Counts",
+    y = "Frequency",
+    title = "Distribution of Spiny Lobster Counts by Reef Site",
+    subtitle = "Dashed line indicates median lobster abundance per site"
+  )
+
+
+
 ```
 
-**c.** Compare means of the outcome by treatment group. Using the `tbl_summary()` function from the package [`gt_summary`](https://www.danieldsjoberg.com/gtsummary/articles/tbl_summary.html) 
+```{r}
+# plot 2.. Distribution of Spiny Lobster Counts by Treatment (MPA Designation)
+spiny_counts %>%
+    mutate(treat = factor(treat, levels = c(0, 1), labels = c("Non-MPA", "MPA"))) %>%
+  ggplot(aes(x = factor(treat), y = count, fill = treat)) +
+  geom_violin(trim = FALSE, draw_quantiles = c(0.25, 0.5, 0.75), alpha = 0.7) +
+  geom_jitter(width = 0.15, size = 1, alpha = 0.5, color = "black") +
+  scale_fill_manual(values = c("Non-MPA" = "#FB6A4A", "MPA" = "#6BAED6")) +
+  theme_bw(base_size = 10) +
+  labs(
+    x = "Treatment",
+    y = "Lobster Counts",
+    fill = "MPA Designation",
+    title = "Distribution of Spiny Lobster Counts by Treatment (MPA Designation)",
+    subtitle = "Lines reference quartiles (25%, 50%, 75%)"
+  ) +
+  theme(legend.position = "top")
+
+
+```
+
+```{r}
+# plot 3... Distribution of Spiny Lobster Counts (2012-2018)
+ spiny_counts %>%
+  ggplot(
+    aes(
+      x = count,
+      y = fct_rev(factor(year)),
+      fill = stat(quantile)
+    )
+  ) +
+  geom_density_ridges_gradient(
+    quantiles = c(0.25, 0.5, 0.75),
+    quantile_lines = T,
+    scale = 1,
+    alpha = 0.3
+  ) + scale_fill_viridis_d(option = "J", alpha = .6)+ 
+  theme_bw(base_size = 10) +
+  labs(
+    title = "Distribution of Spiny Lobster Counts (2012-2018)",
+    subtitle = "IQR (25–75%) outlined",
+    x = "Lobster Counts",
+    y = "Year", 
+    fill = "Quantile"
+    
+  )
+
+```
+
+```{r}
+# plot 4
+beeswarm::beeswarm(
+    mean_size ~ factor(reef), 
+    pch = 19, 
+    data = spiny_counts,
+    col = 2:6, 
+    cex.axis = .8 )
+
+
+    
+reef_means <- spiny_counts %>% 
+    group_by(reef) %>% 
+    summarize(average_)
+    aggregate(mean_size ~ reef, data = spiny_counts, mean)
+
+points(
+  x = as.numeric(factor(reef_means$reef)),
+  y = reef_means$mean_size,
+  pch = 23,        
+  bg = "black",
+  cex = 1.5
+)
+
+```
+
+**c.** Compare means of the outcome by treatment group. Using the `tbl_summary()` function from the package [`gt_summary`](https://www.danieldsjoberg.com/gtsummary/articles/tbl_summary.html)
 
 ```{r}
 # USE: gt_summary::tbl_summary()
+
+glimpse(spiny_counts)
+spiny_counts %>% tbl_summary(by = treat, include =  c(count,mean_size), 
+                             statistic = list(all_continuous() ~ "{mean} ({sd})"),
+                             missing = "no",
+    digits = all_continuous() ~ 2) 
+
 ```
 
 ------------------------------------------------------------------------
@@ -170,10 +321,12 @@ ggplot()
 
 **b.** Interpret the intercept & predictor coefficients *in your own words*. Use full sentences and write your interpretation of the regression results to be as clear as possible to a non-academic audience.
 
+There are about 15 spiny lobsters predicted, on average, in non-MPA areas. MPA areas have, on average, about 5 more spiny lobsters than non-MPA areas. Marine protected areas are likely associated with higher lobster abundance; there is evidence to suggest that the influence of MPA designation on the predicted spiny lobster count in a measured area is unlikely due to random chance alone (p \< .05).
+
 ```{r}
 # NOTE: We will not evaluate/interpret model fit in this assignment (e.g., R-square)
 
-m1_ols <- 
+m1_ols <- lm(count ~ treat, data = spiny_counts)
 
 summ(m1_ols, model.fit = FALSE) 
 
@@ -183,20 +336,21 @@ summ(m1_ols, model.fit = FALSE)
 
 **d.** Explain the results of the 4 diagnostic plots. Why are we getting this result?
 
+-    **qqplot**: The residuals do not fall along the
+
+-   
+
 ```{r}
 check_model(m1_ols,  check = "qq" )
 ```
-
 
 ```{r}
 check_model(m1_ols, check = "normality")
 ```
 
-
 ```{r}
 check_model(m1_ols, check = "homogeneity")
 ```
-
 
 ```{r}
 check_model(m1_ols, check = "pp_check")
@@ -210,7 +364,7 @@ check_model(m1_ols, check = "pp_check")
 
 **b.** Interpret the predictor coefficient in your own words. Use full sentences and write your interpretation of the results to be as clear as possible to a non-academic audience.
 
-**c.** Explain the statistical concept of dispersion and overdispersion in the context of this model. 
+**c.** Explain the statistical concept of dispersion and overdispersion in the context of this model.
 
 **d.** Compare results with previous model, explain change in the significance of the treatment effect
 
@@ -219,7 +373,11 @@ check_model(m1_ols, check = "pp_check")
 
 #HINT2: For the second glm() argument `family` use the following specification option `family = poisson(link = "log")`
 
-m2_pois <- 
+m2_pois <- glm(count ~ treat, data = spiny_counts, family = poisson(link = "log"))
+
+
+summ(m2_pois, exp = T)
+
 
 ```
 
@@ -239,7 +397,7 @@ check_overdispersion(m2_pois)
 check_zeroinflation(m2_pois)
 ```
 
-**g.** Fit a negative binomial model using the function glm.nb() from the package `MASS` and check model diagnostics 
+**g.** Fit a negative binomial model using the function glm.nb() from the package `MASS` and check model diagnostics
 
 **h.** In 1-2 sentences explain rationale for fitting this GLM model.
 
@@ -253,10 +411,9 @@ library(MASS) ## NOTE: The `select()` function is masked. Use: `dplyr::select()`
 
 # NOTE: The `glm.nb()` function does not require a `family` argument
 
-m3_nb <- 
+m3_nb <- glm.nb()
 
 ```
-
 
 ```{r}
 check_overdispersion(m3_nb)
@@ -274,14 +431,13 @@ check_predictions(m3_nb)
 check_model(m3_nb)
 ```
 
-
 ------------------------------------------------------------------------
 
-#### Step 6: Compare models 
+#### Step 6: Compare models
 
 **a.** Use the `export_summ()` function from the `jtools` package to look at the three regression models you fit side-by-side.
 
-**c.** Write a short paragraph comparing the results. Is the treatment effect `robust` or stable across the model specifications. 
+**c.** Write a short paragraph comparing the results. Is the treatment effect `robust` or stable across the model specifications.
 
 ```{r}
 
@@ -295,16 +451,16 @@ export_summs(# ADD MODELS
 
 #### Step 7: Building intuition - fixed effects
 
-**a.** Create  new `df` with the `year` variable converted to a factor
+**a.** Create new `df` with the `year` variable converted to a factor
 
 **b.** Run the following negative binomial model using `glm.nb()`
 
-- Add fixed effects for `year` (i.e., dummy coefficients)
-- Include an interaction term between variables `treat` & `year` (`treat*year`)
+-   Add fixed effects for `year` (i.e., dummy coefficients)
+-   Include an interaction term between variables `treat` & `year` (`treat*year`)
 
 **c.** Take a look at the regression output. Each coefficient provides a comparison or the difference in means for a specific sub-group in the data. Informally, describe the what the model has estimated at a conceptual level (NOTE: you do not have to interpret coefficients individually)
 
-**d.** Explain why the main effect for treatment is negative? *Does this result make sense?
+**d.** Explain why the main effect for treatment is negative? \*Does this result make sense?
 
 ```{r}
 
@@ -321,9 +477,9 @@ m5_fixedeffs <- glm.nb(
 summ(m5_fixedeffs, model.fit = FALSE)
 ```
 
-**e.** Look at the model predictions: Use the `interact_plot()` function from package `interactions` to plot mean predictions by year and treatment status. 
+**e.** Look at the model predictions: Use the `interact_plot()` function from package `interactions` to plot mean predictions by year and treatment status.
 
-**f.** Re-evaluate your responses (c) and (b) above. 
+**f.** Re-evaluate your responses (c) and (b) above.
 
 ```{r}
 
@@ -335,11 +491,7 @@ interact_plot(m5_fixedeffs, pred = year, modx = treat,
 
 **g.** Using `ggplot()` create a plot in same style as the previous `interaction plot`, but displaying the original scale of the outcome variable (lobster counts). This type of plot is commonly used to show how the treatment effect changes across discrete time points (i.e., panel data).
 
-The plot should have... 
-- `year` on the x-axis
-- `counts` on the y-axis
-- `mpa` as the grouping variable
-
+The plot should have... - `year` on the x-axis - `counts` on the y-axis - `mpa` as the grouping variable
 
 ```{r}
 # Hint 1: Group counts by `year` and `mpa` and calculate the `mean_count`
@@ -354,13 +506,16 @@ plot_counts <-
 
 #### Step 8: Reconsider causal identification assumptions
 
-a. Discuss whether you think `spillover effects` are likely in this research context (see Glossary of terms; https://docs.google.com/document/d/1RIudsVcYhWGpqC-Uftk9UTz3PIq6stVyEpT44EPNgpE/edit?usp=sharing)
-b. Explain why spillover is an issue for the identification of causal effects
-c. How does spillover relate to impact in this research setting?
-d. Discuss the following causal inference assumptions in the context of the MPA treatment effect estimator. Evaluate if each of the assumption are reasonable: 
-    
-    1) SUTVA: Stable Unit Treatment Value assumption 
-    2) Excludability assumption
+a.  Discuss whether you think `spillover effects` are likely in this research context (see Glossary of terms; <https://docs.google.com/document/d/1RIudsVcYhWGpqC-Uftk9UTz3PIq6stVyEpT44EPNgpE/edit?usp=sharing>)
+
+b.  Explain why spillover is an issue for the identification of causal effects
+
+c.  How does spillover relate to impact in this research setting?
+
+d.  Discuss the following causal inference assumptions in the context of the MPA treatment effect estimator. Evaluate if each of the assumption are reasonable:
+
+    1)  SUTVA: Stable Unit Treatment Value assumption
+    2)  Excludability assumption
 
 ------------------------------------------------------------------------
 
@@ -368,12 +523,10 @@ d. Discuss the following causal inference assumptions in the context of the MPA 
 
 > Use the recent lobster abundance data with observations collected up until 2024 (`extracredit_sblobstrs24.csv`) to run an analysis evaluating the effect of MPA status on lobster counts using the same focal variables.
 
-a. Create a new script for the analysis on the updated data
-b. Run at least 3 regression models & assess model diagnostics
-c. Compare and contrast results with the analysis from the 2012-2018 data sample (~ 2 paragraphs)
-
+a.  Create a new script for the analysis on the updated data
+b.  Run at least 3 regression models & assess model diagnostics
+c.  Compare and contrast results with the analysis from the 2012-2018 data sample (\~ 2 paragraphs)
 
 ------------------------------------------------------------------------
 
 ![](figures/spiny1.png)
-
