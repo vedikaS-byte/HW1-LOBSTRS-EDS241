@@ -576,20 +576,20 @@ plot_counts
 
 a.  Discuss whether you think `spillover effects` are likely in this research context (see Glossary of terms; <https://docs.google.com/document/d/1RIudsVcYhWGpqC-Uftk9UTz3PIq6stVyEpT44EPNgpE/edit?usp=sharing>)
 
-    a.  Spillover effects are possible in this study because
+    Spillover effects are possible in this study because lobsters in MPAs (NAPL, IVEE) could potentially migrate to nearby non-MPA reefs (AQUE, CARP, MOHK). This movement could violate the SUTVA principle because the designation of one reef as an MPA could influence outcomes at nearby control (non-MPA) sites. If spillover occurs, then it would likely reduce the observed difference between the MPAs and non-MPAs (control sites), making it difficult to detect a causal effect of protection. While this effect may be ecologically desirable due to potentially increases lobster counts outside of MPAs, it would be difficult to precisely measure the treatment effect of MPA designation on spiny lobster counts from a research perspective.
 
 b.  Explain why spillover is an issue for the identification of causal effects.
 
-    a.  
+    Spillover is an issue for identifying causal effects because it violates the SUTVA assumption. The SUTVA assumption assumes that each unit's outcome depends on only its own treatment. Spillover could occur if lobsters move from MPAs to nearby non-MPAs. As such, spillover can potentially mask longer term treatment effects because the difference in effect between MPA and non-MPA is reduced, making it difficult to isolate for the effect of protection in MPAs on average spiny lobster count.
 
 c.  How does spillover relate to impact in this research setting?
 
-    a.  
+    If the SUTVA assumption is violated by movement of lobsters between MPAs and non-MPAs, then it becomes more difficult to measure the causal effects since the difference between the MPAs and non-MPAs effect is reduced. Essentially, lobsters moving from MPAs into nearby non-MPAs could increase lobster abundance and decrease the observable treatment-control difference that conservationists and researchers rely on for measureing the impact of protection on increase species density.
 
 d.  Discuss the following causal inference assumptions in the context of the MPA treatment effect estimator. Evaluate if each of the assumption are reasonable:
 
-    1)  SUTVA: Stable Unit Treatment Value assumption
-    2)  Exogeneity assumption
+    1)  SUTVA: Stable Unit Treatment Value assumption: This assumption assumes that each unit’s outcome depends only on its own treatment and not on the treatment assigned to other units. SUTVA could be violated due to spillover effects. For instance, lobsters may move between an MPA and non-MPA and populate outside MPAs during their reproductive stage to explore varied food items. As a result, the non-MPA lobster counts are partially affected by neighboring MPA sites, reducing the difference between the treatment (MPA) and control (non-MPA) outcomes. So, this assumption if likely unreasonable unless short-term or isolated studies can potentially accommodate the SUTVA assumption if spillover is minimal.
+    2)  Exogeneity assumption: Based on the exogeneity assumption, the MPA designation should be unrelated to unobserved (environmental or anthropogenic) factors; the MPA designation status should not be correlated with the regression term. The assumption could be violated if MPAs are placed in areas with characteristics that also influence lobster outcomes, such as greater habitat quality or lower historical fishing pressure. These factors could independently affect lobster abundance and confound the estimated treatment effect. This assumption is probably not reasonable as MPAs are likely to not be randomly assigned; they may be assigned based on specific environmental criteria instead.
 
 ------------------------------------------------------------------------
 
