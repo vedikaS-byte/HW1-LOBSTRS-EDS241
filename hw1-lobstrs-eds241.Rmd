@@ -1,13 +1,14 @@
 ---
 title: "Assignment 1"
+subtitle: 'California Spiny Lobster (*Panulirus interruptus*): Assessing the Impact
+  of Marine Protected Areas (MPAs) at 5 Reef Sites in Santa Barbara County'
 author: 'EDS 241 / ESM 244 (**Due: 1/20**)'
 date: "1/8/26"
 output:
   html_document:
     theme: flatly
-  pdf_document: default
-subtitle: 'California Spiny Lobster (*Panulirus Interruptus*): Assessing the Impact
-  of Marine Protected Areas (MPAs) at 5 Reef Sites in Santa Barbara County'
+  pdf_document:
+    latex_engine: xelatex
 editor_options:
   chunk_output_type: inline
 ---
@@ -63,13 +64,13 @@ library(ggridges)
 
 ### **Introduction**
 
-You're about to dive into some deep data collected from five reef sites in Santa Barbara County, all about the abundance of California spiny lobsters! 🦞 Data was gathered by divers annually from 2012 to 2018 across Naples, Mohawk, Isla Vista, Carpinteria, and Arroyo Quemado reefs.
+You're about to dive into some deep data collected from five reef sites in Santa Barbara County, all about the abundance of California spiny lobsters! Data was gathered by divers annually from 2012 to 2018 across Naples, Mohawk, Isla Vista, Carpinteria, and Arroyo Quemado reefs.
 
 Why lobsters? Well, this sample provides an opportunity to evaluate the impact of Marine Protected Areas (MPAs) established on January 1, 2012 (Reed, 2019). Of these five reefs, Naples, and Isla Vista are MPAs, while the other three are not protected (non-MPAs). Comparing lobster health between these protected and non-protected areas gives us the chance to study how commercial and recreational fishing might impact these ecosystems.
 
 We will consider the MPA sites the `treatment` group and use regression methods to explore whether protecting these reefs really makes a difference compared to non-MPA sites (our control group). In this assignment, we’ll think deeply about which causal inference assumptions hold up under the research design and identify where they fall short.
 
-Let’s break it down step by step and see what the data reveals! 📊
+Let’s break it down step by step and see what the data reveals!
 
 ![](figures/map-5reefs.png)
 
@@ -78,6 +79,8 @@ Let’s break it down step by step and see what the data reveals! 📊
 #### Step 1: Anticipating potential sources of selection bias
 
 **a.** Do the control sites (Arroyo Quemado, Carpenteria, and Mohawk) provide a strong counterfactual for our treatment sites (Naples, Isla Vista)? Write a paragraph making a case for why this comparison is ceteris paribus or whether selection bias is likely (be specific!).
+
+The control sites (Arroyo Quemado, Carpenteria, and Mohawk) are reasonably located along the same coastline as the treatment sites (Naples and Isla Vista), helping to control for larger-scale environment differences such as water temperature, wave intensity, and additional environmental factors. However, there are potential sources of selection bias, as the treatment sites were chosen for MPA protection and could potentially be correlated with preexisting ecological conditions (ex. high lobster densities or improved habitat quality) that differ from the control sites (non-MPAs). While the proximity of the control sites can provide the *ceteris paribus* comparison for regional environmental conditions, influence from human activity or differences in reef structure could influence spiny lobster counts independent of MPA status.
 
 ------------------------------------------------------------------------
 
@@ -237,16 +240,14 @@ spiny_counts %>%
   geom_violin(trim = FALSE, draw_quantiles = c(0.25, 0.5, 0.75), alpha = 0.7) +
   geom_jitter(width = 0.15, size = 1, alpha = 0.5, color = "black") +
   scale_fill_manual(values = c("Non-MPA" = "#FB6A4A", "MPA" = "#6BAED6")) +
-  theme_bw(base_size = 10) +
+  theme_bw(base_size = 10) + guides(fill = "none") +
   labs(
     x = "Treatment",
     y = "Lobster Counts",
     fill = "MPA Designation",
     title = "Distribution of Spiny Lobster Counts by Treatment (MPA Designation)",
     subtitle = "Lines reference quartiles (25%, 50%, 75%)"
-  ) +
-  theme(legend.position = "top")
-
+  )
 
 ```
 
@@ -269,38 +270,40 @@ spiny_counts %>%
   theme_bw(base_size = 10) +
   labs(
     title = "Distribution of Spiny Lobster Counts (2012-2018)",
-    subtitle = "IQR (25–75%) outlined",
+    subtitle = "IQR (25-75%) outlined",
     x = "Lobster Counts",
     y = "Year", 
     fill = "Quantile"
-    
-  )
+  ) + 
+    coord_cartesian(xlim = c(NA, 120))
+
 
 ```
 
 ```{r}
-# plot 4
+# plot 4... Mean lobster size by reef with highlighted average of reef mean sizes
 beeswarm::beeswarm(
-    mean_size ~ factor(reef), 
-    pch = 19, 
-    data = spiny_counts,
-    col = 2:6, 
-    cex.axis = .8 )
+  mean_size ~ factor(reef), 
+  pch = 19, 
+  data = spiny_counts,
+  col = 2:6, 
+  cex.axis = 0.8,
+  main = "Distribution of Mean Lobster Sizes by Reef \n(Diamonds represent reef-level means)",
+  xlab = "Reef",
+  ylab = "Mean Lobster Size (mm)"
+)
 
-
-    
 reef_means <- spiny_counts %>% 
-    group_by(reef) %>% 
-    summarize(average_mean_dist = mean(mean_size, na.rm = T))
+  group_by(reef) %>% 
+  summarize(average_mean_dist = mean(mean_size, na.rm = TRUE))
 
-# Add on points (contrary to ggplot)
-points(
+# Add on point to indicate reef-level mean (contrary to ggplot, need to add manually)
+points( # Convert to numeric because points() expects numeric coordinates
   x = as.numeric(factor(reef_means$reef)),
   y = reef_means$average_mean_dist,
-  pch = 23,        # diamond
-  bg = "black",
-  cex = 1.5
-)
+  pch = 23,  
+  bg = "black"
+) 
 
 ```
 
@@ -308,8 +311,6 @@ points(
 
 ```{r}
 # USE: gt_summary::tbl_summary()
-
-glimpse(spiny_counts)
 spiny_counts %>% 
     tbl_summary(by = mpa, include = count, 
                              statistic = list(all_continuous() ~ "{mean} ({sd})"),
@@ -325,7 +326,7 @@ spiny_counts %>%
 
 **b.** Interpret the intercept & predictor coefficients *in your own words*. Use full sentences and write your interpretation of the regression results to be as clear as possible to a non-academic audience.
 
-There are about 23 spiny lobsters predicted, on average, in non-MPA areas. MPA areas have, on average, about 5 more spiny lobsters than non-MPA areas. Marine protected areas are likely associated with higher lobster abundance; there is evidence to suggest that the influence of MPA designation on the predicted spiny lobster count in a measured area is unlikely due to random chance alone (p \< .05).
+There are about 23 spiny lobsters predicted, on average, in non-MPA areas. MPA areas have, on average, about 5 more spiny lobsters than non-MPA areas. Marine protected areas are likely associated with higher lobster abundance; there is evidence to suggest that the influence of MPA designation on the predicted spiny lobster count in a measured reef is unlikely due to random chance alone (p \< .05).
 
 ```{r}
 # NOTE: We will not evaluate/interpret model fit in this assignment (e.g., R-square)
@@ -342,7 +343,7 @@ summ(m1_ols, model.fit = FALSE)
 
 -   **qqplot**: The residuals do not fall along the line and show a pattern (curve), indicating that the relationship between the treatment group and the lobster count may not be linear.
 
--   **Normality of Residuals:** The distribution of the residuals is non-normal, indicating that the model may not capture underlying patterns between variables or potential outliers in the spiny lobster count (outcome).
+-   **Normality of Residuals:** The distribution of the residuals is non-normal, indicating that the model may not capture underlying patterns between variables or potential outliers in the spiny lobster count.
 
 -   **Homogeneity of Variance:** There is clear heteroscedasticity in the homogeneity of variance graph, indicating that the spread or variance of the spiny lobster count is not equal across the treatment groups (MPA or non-MPA).
 
@@ -391,7 +392,7 @@ Compared to the previous linear model, the treatment effect in the Poisson model
 m2_pois <- glm(count ~ treat, data = spiny_counts, family = poisson(link = "log"))
 
 
-summ(m2_pois, exp = T) # exp will return the IRR (exponentation of beta)
+summ(m2_pois) # exp will return the IRR (exponentation of beta)
 
 
 # Calculate percent change: ((New IRR - Old IRR) / Old IRR) * 100, where "1" refers to the treatment group
@@ -447,7 +448,7 @@ library(MASS) ## NOTE: The `select()` function is masked. Use: `dplyr::select()`
 
 m3_nb <- glm.nb(count ~ treat, data = spiny_counts) 
 
-summ(m3_nb, exp = T)
+summ(m3_nb)
 
 # Calculate percent change: ((New IRR - Old IRR) / Old IRR) * 100, where "1" refers to the treatment group
 print(paste("The percent change in the predictor is", ((1.24-1)/1)*100, "%."))
@@ -584,7 +585,7 @@ b.  Explain why spillover is an issue for the identification of causal effects.
 
 c.  How does spillover relate to impact in this research setting?
 
-    If the SUTVA assumption is violated by movement of lobsters between MPAs and non-MPAs, then it becomes more difficult to measure the causal effects since the difference between the MPAs and non-MPAs effect is reduced. Essentially, lobsters moving from MPAs into nearby non-MPAs could increase lobster abundance and decrease the observable treatment-control difference that conservationists and researchers rely on for measureing the impact of protection on increase species density.
+    If the SUTVA assumption is violated by movement of lobsters between MPAs and non-MPAs, then it becomes more difficult to measure the causal effects since the difference between the MPAs and non-MPAs effect is reduced. Essentially, lobsters moving from MPAs into nearby non-MPAs could increase lobster abundance and decrease the observable treatment-control difference that conservationists and researchers rely on for measuring the impact of protection on increase species density.
 
 d.  Discuss the following causal inference assumptions in the context of the MPA treatment effect estimator. Evaluate if each of the assumption are reasonable:
 
