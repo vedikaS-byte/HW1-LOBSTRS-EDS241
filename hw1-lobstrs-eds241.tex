@@ -255,9 +255,16 @@ conditions, influence from human activity or differences in reef
 structure could influence spiny lobster counts independent of MPA
 status.
 
-\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+According to the metadata, sites (reefs) were not randomly assigned to
+treatment and control conditions. Instead, the two treatment sites
+(Naples and Isla Vista) are reefs that already happened to fall within
+California's MPA network when the MPAs were established in 2012. The
+remaining sites are long term kelp forest monitoring reefs located
+outside MPAs and serve as comparison (or control) sites. As a result,
+assignment to MPA versus non-MPA status is observational and not the
+result of an experimental randomization process.
 
-\paragraph{Step 2: Read \& wrangle data}\label{step-2-read-wrangle-data}
+Step 2: Read \& wrangle data
 
 \textbf{a.} Read in the raw data from the ``data'' folder named
 \texttt{spiny\_abundance\_sb\_18.csv}. Name the data.frame
@@ -509,15 +516,14 @@ Create a plot of lobster \textbf{size} :
   \FunctionTok{geom\_violin}\NormalTok{(}\AttributeTok{trim =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{draw\_quantiles =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.25}\NormalTok{, }\FloatTok{0.5}\NormalTok{, }\FloatTok{0.75}\NormalTok{), }\AttributeTok{alpha =} \FloatTok{0.7}\NormalTok{) }\SpecialCharTok{+}
   \FunctionTok{geom\_jitter}\NormalTok{(}\AttributeTok{width =} \FloatTok{0.15}\NormalTok{, }\AttributeTok{size =} \DecValTok{1}\NormalTok{, }\AttributeTok{alpha =} \FloatTok{0.5}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+}
   \FunctionTok{scale\_fill\_manual}\NormalTok{(}\AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\StringTok{"Non{-}MPA"} \OtherTok{=} \StringTok{"\#FB6A4A"}\NormalTok{, }\StringTok{"MPA"} \OtherTok{=} \StringTok{"\#6BAED6"}\NormalTok{)) }\SpecialCharTok{+}
-  \FunctionTok{theme\_bw}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{10}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_bw}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{10}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{guides}\NormalTok{(}\AttributeTok{fill =} \StringTok{"none"}\NormalTok{) }\SpecialCharTok{+}
   \FunctionTok{labs}\NormalTok{(}
     \AttributeTok{x =} \StringTok{"Treatment"}\NormalTok{,}
     \AttributeTok{y =} \StringTok{"Lobster Counts"}\NormalTok{,}
     \AttributeTok{fill =} \StringTok{"MPA Designation"}\NormalTok{,}
     \AttributeTok{title =} \StringTok{"Distribution of Spiny Lobster Counts by Treatment (MPA Designation)"}\NormalTok{,}
     \AttributeTok{subtitle =} \StringTok{"Lines reference quartiles (25\%, 50\%, 75\%)"}
-\NormalTok{  ) }\SpecialCharTok{+}
-  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"top"}\NormalTok{)}
+\NormalTok{  )}
 \end{Highlighting}
 \end{Shaded}
 
@@ -547,8 +553,8 @@ Create a plot of lobster \textbf{size} :
     \AttributeTok{x =} \StringTok{"Lobster Counts"}\NormalTok{,}
     \AttributeTok{y =} \StringTok{"Year"}\NormalTok{, }
     \AttributeTok{fill =} \StringTok{"Quantile"}
-    
-\NormalTok{  )}
+\NormalTok{  ) }\SpecialCharTok{+} 
+    \FunctionTok{coord\_cartesian}\NormalTok{(}\AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(}\ConstantTok{NA}\NormalTok{, }\DecValTok{120}\NormalTok{))}
 \end{Highlighting}
 \end{Shaded}
 
@@ -578,7 +584,7 @@ Create a plot of lobster \textbf{size} :
   \AttributeTok{y =}\NormalTok{ reef\_means}\SpecialCharTok{$}\NormalTok{average\_mean\_dist,}
   \AttributeTok{pch =} \DecValTok{23}\NormalTok{,  }
   \AttributeTok{bg =} \StringTok{"black"}
-\NormalTok{)}
+\NormalTok{) }
 \end{Highlighting}
 \end{Shaded}
 
@@ -591,26 +597,6 @@ Create a plot of lobster \textbf{size} :
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{\# USE: gt\_summary::tbl\_summary()}
-
-\FunctionTok{glimpse}\NormalTok{(spiny\_counts)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-## Rows: 252
-## Columns: 8
-## $ site      <chr> "AQUE", "AQUE", "AQUE", "AQUE", "AQUE", "AQUE", "AQUE", "AQU~
-## $ year      <dbl> 2012, 2012, 2012, 2012, 2012, 2012, 2012, 2013, 2013, 2013, ~
-## $ transect  <dbl> 1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, ~
-## $ reef      <fct> Arroyo Quemado, Arroyo Quemado, Arroyo Quemado, Arroyo Quema~
-## $ count     <dbl> 5, 9, 0, 9, 11, 0, 4, 7, 2, 0, 8, 13, 0, 2, 19, 1, 0, 7, 70,~
-## $ mean_size <dbl> 64.20000, 66.00000, NaN, 74.14286, 76.90000, NaN, 70.50000, ~
-## $ mpa       <chr> "non_MPA", "non_MPA", "non_MPA", "non_MPA", "non_MPA", "non_~
-## $ treat     <dbl> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ~
-\end{verbatim}
-
-\begin{Shaded}
-\begin{Highlighting}[]
 \NormalTok{spiny\_counts }\SpecialCharTok{\%\textgreater{}\%} 
     \FunctionTok{tbl\_summary}\NormalTok{(}\AttributeTok{by =}\NormalTok{ mpa, }\AttributeTok{include =}\NormalTok{ count, }
                              \AttributeTok{statistic =} \FunctionTok{list}\NormalTok{(}\FunctionTok{all\_continuous}\NormalTok{() }\SpecialCharTok{\textasciitilde{}} \StringTok{"\{mean\} (\{sd\})"}\NormalTok{),}
@@ -805,7 +791,7 @@ transects.
 \NormalTok{m2\_pois }\OtherTok{\textless{}{-}} \FunctionTok{glm}\NormalTok{(count }\SpecialCharTok{\textasciitilde{}}\NormalTok{ treat, }\AttributeTok{data =}\NormalTok{ spiny\_counts, }\AttributeTok{family =} \FunctionTok{poisson}\NormalTok{(}\AttributeTok{link =} \StringTok{"log"}\NormalTok{))}
 
 
-\FunctionTok{summ}\NormalTok{(m2\_pois, }\AttributeTok{exp =}\NormalTok{ T) }\CommentTok{\# exp will return the IRR (exponentation of beta)}
+\FunctionTok{summ}\NormalTok{(m2\_pois) }\CommentTok{\# exp = T will return the IRR (exponentation of beta)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -836,12 +822,12 @@ BIC & 11372.68\\
 \end{table} \begin{table}[!h]
 \centering
 \begin{threeparttable}
-\begin{tabular}{lrrrrr}
+\begin{tabular}{lrrrr}
 \toprule
-  & exp(Est.) & 2.5\% & 97.5\% & z val. & p\\
+  & Est. & S.E. & z val. & p\\
 \midrule
-\cellcolor{gray!10}{(Intercept)} & \cellcolor{gray!10}{22.73} & \cellcolor{gray!10}{21.93} & \cellcolor{gray!10}{23.55} & \cellcolor{gray!10}{171.74} & \cellcolor{gray!10}{0.00}\\
-treat & 1.24 & 1.18 & 1.30 & 8.44 & 0.00\\
+\cellcolor{gray!10}{(Intercept)} & \cellcolor{gray!10}{3.12} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{171.74} & \cellcolor{gray!10}{0.00}\\
+treat & 0.21 & 0.03 & 8.44 & 0.00\\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
@@ -981,7 +967,7 @@ which may influence the observed significance of the treatment effect.
 
 \NormalTok{m3\_nb }\OtherTok{\textless{}{-}} \FunctionTok{glm.nb}\NormalTok{(count }\SpecialCharTok{\textasciitilde{}}\NormalTok{ treat, }\AttributeTok{data =}\NormalTok{ spiny\_counts) }
 
-\FunctionTok{summ}\NormalTok{(m3\_nb, }\AttributeTok{exp =}\NormalTok{ T)}
+\FunctionTok{summ}\NormalTok{(m3\_nb)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1012,12 +998,12 @@ BIC & 2099.12\\
 \end{table} \begin{table}[!h]
 \centering
 \begin{threeparttable}
-\begin{tabular}{lrrrrr}
+\begin{tabular}{lrrrr}
 \toprule
-  & exp(Est.) & 2.5\% & 97.5\% & z val. & p\\
+  & Est. & S.E. & z val. & p\\
 \midrule
-\cellcolor{gray!10}{(Intercept)} & \cellcolor{gray!10}{22.73} & \cellcolor{gray!10}{18.02} & \cellcolor{gray!10}{28.66} & \cellcolor{gray!10}{26.40} & \cellcolor{gray!10}{0.00}\\
-treat & 1.24 & 0.88 & 1.73 & 1.23 & 0.22\\
+\cellcolor{gray!10}{(Intercept)} & \cellcolor{gray!10}{3.12} & \cellcolor{gray!10}{0.12} & \cellcolor{gray!10}{26.40} & \cellcolor{gray!10}{0.00}\\
+treat & 0.21 & 0.17 & 1.23 & 0.22\\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}

@@ -82,7 +82,7 @@ Let’s break it down step by step and see what the data reveals!
 
 The control sites (Arroyo Quemado, Carpenteria, and Mohawk) are reasonably located along the same coastline as the treatment sites (Naples and Isla Vista), helping to control for larger-scale environment differences such as water temperature, wave intensity, and additional environmental factors. However, there are potential sources of selection bias, as the treatment sites were chosen for MPA protection and could potentially be correlated with preexisting ecological conditions (ex. high lobster densities or improved habitat quality) that differ from the control sites (non-MPAs). While the proximity of the control sites can provide the *ceteris paribus* comparison for regional environmental conditions, influence from human activity or differences in reef structure could influence spiny lobster counts independent of MPA status.
 
-------------------------------------------------------------------------
+According to the metadata, sites (reefs) were not randomly assigned to treatment and control conditions. Instead, the two treatment sites (Naples and Isla Vista) are reefs that already happened to fall within California’s MPA network when the MPAs were established in 2012. The remaining sites are long term kelp forest monitoring reefs located outside MPAs and serve as comparison (or control) sites. As a result, assignment to MPA versus non-MPA status is observational and not the result of an experimental randomization process.
 
 #### Step 2: Read & wrangle data
 
@@ -392,7 +392,7 @@ Compared to the previous linear model, the treatment effect in the Poisson model
 m2_pois <- glm(count ~ treat, data = spiny_counts, family = poisson(link = "log"))
 
 
-summ(m2_pois) # exp will return the IRR (exponentation of beta)
+summ(m2_pois) # exp = T will return the IRR (exponentation of beta)
 
 
 # Calculate percent change: ((New IRR - Old IRR) / Old IRR) * 100, where "1" refers to the treatment group
@@ -507,13 +507,15 @@ export_summs( # ADD MODELS
 -   Add fixed effects for `year` (i.e., dummy coefficients)
 -   Include an interaction term between variables `treat` & `year` (`treat*year`)
 
-**c.** Take a look at the regression output. Each coefficient provides a comparison or the difference in means for a specific sub-group in the data. Informally, describe the what the model has estimated at a conceptual level (NOTE: you do not have to interpret coefficients individually)
+**c.** Take a look at the regression output. Each coefficient provides a comparison or the difference in means for a specific sub-group in the data. Informally, describe the what the model has estimated at a conceptual level (NOTE: you do not have to interpret coefficients individually).
 
-The negative binomial model is estimating how spiny lobster counts vary across years, between treatment groups, and in the interaction between year and treatment. Essentially, it is comparing the expected counts for different sub groups (ex. MPA transects vs non-MPA transects each year) while also accounting for overdispersion in the outcome. The model captures both overall trends across years and how the effect of treatment changes over time.
+The negative binomial model is estimating how spiny lobster counts vary across years, between treatment groups, and in the interaction between year and treatment. Essentially, it is comparing the expected counts for different sub groups (ex. MPA transects vs non-MPA transects each year) while also accounting for overdispersion in the outcome. The model captures both overall trends across years and how the effect of treatment changes over time. Overall, the negative binomial model indicates that there is no statistically significant difference in spiny lobster counts between treatment (MPA) and control (non-MPA) sites; the treatment indicator is not significant (p \> .05).
 
 **d.** Explain why the main effect for treatment is negative? \*Does this result make sense?
 
 The main effect for treatment is negative because it represents the baseline difference between the treatment (transects in an MPA) and control group (transects in non-MPAs) when all years are set to zero (ie. the reference year). This does not mean that the treatment reduces the spiny lobster counts overall but indicates that in the reference year, the MPA transects had a lower average count of spiny lobsters than non-MPA transects. The positive "treatment by year" interaction terms show that counts in MPAs increase over time, indicating consistency with expected benefits of protection provided by MPAs.
+
+The initial negative treatment effect indicates that the MPAs (treatment group) may not be immediately effective. As the baseline count, transects inside MPAs appear to have lower spiny lobster counts than transects outside MPAs in the reference year (2012). This likely reflects pre-existing differences in reef characteristics (ex. reef quality) rather than an effect caused by protection from an MPA designation. Ecological recovery can be slow, especially because lobster populations must grow, reproduce, and recover after a disturbance is reduced, such as decreased fishing pressure. As a result, MPAs are not immediately effective; the positive treatment-year interaction suggests that lobster abundance generally increases over time within MPAs, indicating gradual recovery benefits with MPA-status protection.
 
 ```{r}
 
